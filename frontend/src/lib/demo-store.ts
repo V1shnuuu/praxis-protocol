@@ -492,13 +492,16 @@ class DemoStore {
   getAgents(): Agent[] {
     return [...this.agents.values()].map((agent) => {
       const score = this.scoreOf(agent);
+      // Status is the agent's CURRENT standing, matching AgentRegistry: only a
+      // bond that has fallen under minBond takes an agent out of the system.
+      // Past slashes are history — they show up in slashCount, the reputation
+      // penalty and the trend, and must not zombify an agent that is still bonded
+      // and still allowed to act.
       const status = !agent.active
         ? ("slashed" as const)
         : agent.openDisputes > 0
           ? ("disputed" as const)
-          : agent.slashCount > 0
-            ? ("slashed" as const)
-            : ("active" as const);
+          : ("active" as const);
 
       return {
         agentId: agent.agentId,
@@ -510,7 +513,7 @@ class DemoStore {
         lockedBond: String(agent.lockedBond),
         reputation: score,
         tier: tierOf(score),
-        status: agent.active ? status : "slashed",
+        status,
         reputationHistory: [...agent.history],
         attestationCount: agent.attestations,
         cleanAttestationCount: agent.cleanAttestations,
