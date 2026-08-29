@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://praxis-protocol.vercel.app";
+// Canonical origin for Open Graph and canonical URLs. Override per environment;
+// the default is the deployed Vercel host.
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://praxis-protocol-zeta.vercel.app";
 const DESCRIPTION =
   "On-chain accountability for autonomous AI agents: staked bonds, hashed decision attestations, challenge-and-slash disputes, and portable reputation.";
 
