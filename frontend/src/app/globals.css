@@ -10,14 +10,17 @@
 
   html {
     color-scheme: dark;
+    scroll-behavior: smooth;
+  }
+
+  /* Anchor targets clear the sticky header. */
+  [id] {
+    scroll-margin-top: 5rem;
   }
 
   body {
     @apply bg-navy-950 text-ink-50 antialiased;
-    background-image:
-      radial-gradient(60rem 40rem at 12% -10%, rgba(18, 198, 224, 0.07), transparent 60%),
-      radial-gradient(50rem 32rem at 100% 0%, rgba(56, 224, 245, 0.05), transparent 55%);
-    background-attachment: fixed;
+    /* Depth is painted by <ParallaxBackground />, which sits behind everything. */
   }
 
   /* Keyboard focus stays visible everywhere; pointer focus does not draw a ring. */
@@ -54,6 +57,21 @@
     background: transparent;
   }
 
+  /* Scroll-reveal: hidden until useReveal stamps data-revealed. */
+  .reveal {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0);
+    transition:
+      opacity 620ms cubic-bezier(0.16, 1, 0.3, 1),
+      transform 620ms cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: opacity, transform;
+  }
+  .reveal[data-revealed="true"] {
+    opacity: 1;
+    transform: none;
+    will-change: auto;
+  }
+
   .skeleton {
     @apply relative overflow-hidden rounded bg-navy-800;
   }
@@ -71,11 +89,21 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+
+  /* Reveals must never leave content invisible when motion is off. */
+  .reveal {
+    opacity: 1 !important;
+    transform: none !important;
   }
 }
