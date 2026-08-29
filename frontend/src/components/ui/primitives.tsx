@@ -7,6 +7,7 @@ export function Panel({
   children,
   className = "",
   bodyClassName = "",
+  flush = false,
 }: {
   title?: ReactNode;
   subtitle?: ReactNode;
@@ -14,14 +15,28 @@ export function Panel({
   children: ReactNode;
   className?: string;
   bodyClassName?: string;
+  /** Drop the card chrome — for sections whose children are themselves cards. */
+  flush?: boolean;
 }) {
   return (
-    <section className={`panel flex min-h-0 flex-col ${className}`}>
+    <section className={`${flush ? "" : "panel"} flex min-h-0 flex-col ${className}`}>
       {(title || action) && (
-        <header className="flex shrink-0 items-start justify-between gap-4 border-b border-navy-700/60 px-4 py-3 sm:px-5">
+        <header
+          className={`flex shrink-0 items-start justify-between gap-4 ${
+            flush ? "px-1 pb-4" : "border-b border-line-300 px-5 py-4"
+          }`}
+        >
           <div className="min-w-0">
-            {title && <h2 className="text-sm font-semibold tracking-tight text-ink-50">{title}</h2>}
-            {subtitle && <p className="mt-0.5 text-xs text-ink-400">{subtitle}</p>}
+            {title && (
+              <h2
+                className={`font-semibold tracking-tight text-ink-900 ${
+                  flush ? "text-base" : "text-sm"
+                }`}
+              >
+                {title}
+              </h2>
+            )}
+            {subtitle && <p className="mt-1 text-xs text-ink-500">{subtitle}</p>}
           </div>
           {action && <div className="shrink-0">{action}</div>}
         </header>
@@ -31,13 +46,14 @@ export function Panel({
   );
 }
 
+// Tints stay pale so the label carries the meaning, not the fill.
 const badgeTones = {
-  neutral: "bg-navy-800 text-ink-200 ring-navy-600",
-  cyan: "bg-cyan-500/12 text-cyan-400 ring-cyan-500/35",
-  clean: "bg-state-clean/12 text-state-clean ring-state-clean/35",
-  disputed: "bg-state-disputed/12 text-state-disputed ring-state-disputed/35",
-  slashed: "bg-state-slashed/12 text-state-slashed ring-state-slashed/35",
-  muted: "bg-navy-800/60 text-ink-400 ring-navy-700",
+  neutral: "bg-paper-100 text-ink-600 ring-line-300",
+  cyan: "bg-accent-50 text-accent-600 ring-accent-100",
+  clean: "bg-state-clean/8 text-state-clean ring-state-clean/20",
+  disputed: "bg-state-disputed/8 text-state-disputed ring-state-disputed/20",
+  slashed: "bg-state-slashed/8 text-state-slashed ring-state-slashed/20",
+  muted: "bg-paper-100 text-ink-500 ring-line-300",
 } as const;
 
 export type BadgeTone = keyof typeof badgeTones;
@@ -62,12 +78,12 @@ export function Badge({
 
 export function Dot({ tone = "clean", pulse = false }: { tone?: BadgeTone; pulse?: boolean }) {
   const colors: Record<BadgeTone, string> = {
-    neutral: "bg-ink-400",
-    cyan: "bg-cyan-400",
+    neutral: "bg-ink-500",
+    cyan: "bg-accent-500",
     clean: "bg-state-clean",
     disputed: "bg-state-disputed",
     slashed: "bg-state-slashed",
-    muted: "bg-ink-600",
+    muted: "bg-ink-400",
   };
   return (
     <span className="relative flex h-1.5 w-1.5 shrink-0">
@@ -83,12 +99,12 @@ export function Dot({ tone = "clean", pulse = false }: { tone?: BadgeTone; pulse
 
 const buttonVariants = {
   primary:
-    "bg-cyan-500 text-navy-950 hover:bg-cyan-400 active:bg-cyan-600 disabled:bg-navy-700 disabled:text-ink-600",
+    "bg-ink-900 text-white hover:bg-ink-800 active:bg-ink-900 disabled:bg-paper-200 disabled:text-ink-400",
   danger:
-    "bg-state-slashed text-navy-950 hover:brightness-110 active:brightness-95 disabled:bg-navy-700 disabled:text-ink-600",
+    "bg-state-slashed text-white hover:brightness-110 active:brightness-95 disabled:bg-paper-200 disabled:text-ink-400",
   ghost:
-    "bg-navy-800/70 text-ink-200 ring-1 ring-inset ring-navy-600 hover:bg-navy-800 hover:text-ink-50 disabled:text-ink-600",
-  subtle: "bg-transparent text-ink-400 hover:text-ink-50 disabled:text-ink-600",
+    "bg-paper-0 text-ink-600 ring-1 ring-inset ring-line-300 hover:border-line-400 hover:bg-paper-100 hover:text-ink-900 disabled:text-ink-400",
+  subtle: "bg-transparent text-ink-500 hover:text-ink-900 disabled:text-ink-400",
 } as const;
 
 export function Button({
@@ -105,7 +121,7 @@ export function Button({
   return (
     <button
       {...props}
-      className={`inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg font-medium transition-colors disabled:cursor-not-allowed ${sizing} ${buttonVariants[variant]} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full font-medium transition-colors disabled:cursor-not-allowed ${sizing} ${buttonVariants[variant]} ${className}`}
     >
       {children}
     </button>
@@ -129,9 +145,9 @@ export function EmptyState({
 }) {
   return (
     <div className="flex flex-col items-center justify-center px-6 py-12 text-center">
-      {icon && <div className="mb-3 text-ink-600">{icon}</div>}
-      <p className="text-sm font-medium text-ink-200">{title}</p>
-      {hint && <p className="mt-1 max-w-xs text-xs leading-relaxed text-ink-400">{hint}</p>}
+      {icon && <div className="mb-3 text-ink-400">{icon}</div>}
+      <p className="text-sm font-medium text-ink-600">{title}</p>
+      {hint && <p className="mt-1 max-w-xs text-xs leading-relaxed text-ink-500">{hint}</p>}
       {action && <div className="mt-4">{action}</div>}
     </div>
   );
@@ -140,11 +156,11 @@ export function EmptyState({
 export function ErrorState({ message, onRetry }: { message: string; onRetry?: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center px-6 py-12 text-center">
-      <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-full bg-state-slashed/12 text-state-slashed ring-1 ring-inset ring-state-slashed/30">
+      <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-full bg-state-slashed/8 text-state-slashed ring-1 ring-inset ring-state-slashed/20">
         !
       </div>
-      <p className="text-sm font-medium text-ink-200">Could not load</p>
-      <p className="mt-1 max-w-sm text-xs leading-relaxed text-ink-400">{message}</p>
+      <p className="text-sm font-medium text-ink-600">Could not load</p>
+      <p className="mt-1 max-w-sm text-xs leading-relaxed text-ink-500">{message}</p>
       {onRetry && (
         <Button size="sm" className="mt-4" onClick={onRetry}>
           Retry

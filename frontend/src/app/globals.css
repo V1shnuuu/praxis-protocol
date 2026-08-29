@@ -3,14 +3,11 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
-    --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-    --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
-  }
-
   html {
-    color-scheme: dark;
+    color-scheme: light;
     scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
 
   /* Anchor targets clear the sticky header. */
@@ -19,42 +16,57 @@
   }
 
   body {
-    @apply bg-navy-950 text-ink-50 antialiased;
+    @apply bg-paper-50 text-ink-900;
     /* Depth is painted by <ParallaxBackground />, which sits behind everything. */
   }
 
-  /* Keyboard focus stays visible everywhere; pointer focus does not draw a ring. */
   :focus-visible {
-    @apply outline-none ring-2 ring-cyan-500/70 ring-offset-2 ring-offset-navy-950;
+    @apply outline-none ring-2 ring-accent-500/60 ring-offset-2 ring-offset-paper-50;
   }
 
   ::selection {
-    @apply bg-cyan-500/30 text-ink-50;
+    @apply bg-accent-100 text-ink-900;
+  }
+
+  /* Numerals line up in tables, bonds and reputation scores. */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
   }
 }
 
 @layer components {
+  /* A card is a white plane on warm paper: one hairline, a whisper of shadow. */
   .panel {
-    @apply rounded-xl border border-navy-700/70 bg-navy-900/70 shadow-panel backdrop-blur-sm;
+    @apply rounded-2xl border border-line-300 bg-paper-0 shadow-card;
   }
 
+  /* Nested surfaces step down to paper rather than up into another shadow. */
   .panel-raised {
-    @apply rounded-lg border border-navy-600/60 bg-navy-850;
+    @apply rounded-xl border border-line-300 bg-paper-0;
   }
 
-  /* Slim scrollbar for the live feed, so long lists do not fight the layout. */
   .scroll-slim {
     scrollbar-width: thin;
-    scrollbar-color: theme("colors.navy.700") transparent;
+    scrollbar-color: theme("colors.line.400") transparent;
   }
   .scroll-slim::-webkit-scrollbar {
     width: 8px;
   }
   .scroll-slim::-webkit-scrollbar-thumb {
-    @apply rounded-full bg-navy-700;
+    @apply rounded-full bg-line-400;
   }
   .scroll-slim::-webkit-scrollbar-track {
     background: transparent;
+  }
+
+  .skeleton {
+    @apply relative overflow-hidden rounded-md bg-paper-100;
+  }
+  .skeleton::after {
+    @apply absolute inset-0 -translate-x-full;
+    content: "";
+    background-image: linear-gradient(90deg, transparent, rgba(20, 22, 26, 0.045), transparent);
+    animation: shimmer 1.6s infinite;
   }
 
   /* Scroll-reveal: hidden until useReveal stamps data-revealed. */
@@ -62,8 +74,8 @@
     opacity: 0;
     transform: translate3d(0, 18px, 0);
     transition:
-      opacity 620ms cubic-bezier(0.16, 1, 0.3, 1),
-      transform 620ms cubic-bezier(0.16, 1, 0.3, 1);
+      opacity 700ms cubic-bezier(0.16, 1, 0.3, 1),
+      transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
     will-change: opacity, transform;
   }
   .reveal[data-revealed="true"] {
@@ -72,19 +84,9 @@
     will-change: auto;
   }
 
-  .skeleton {
-    @apply relative overflow-hidden rounded bg-navy-800;
-  }
-  .skeleton::after {
-    @apply absolute inset-0 -translate-x-full;
-    content: "";
-    background-image: linear-gradient(
-      90deg,
-      transparent,
-      rgba(255, 255, 255, 0.045),
-      transparent
-    );
-    animation: shimmer 1.6s infinite;
+  /* Fine uppercase label used for every field caption. */
+  .label {
+    @apply text-[10px] font-medium uppercase tracking-[0.08em] text-ink-500;
   }
 }
 
@@ -101,7 +103,6 @@
     transition-duration: 0.01ms !important;
   }
 
-  /* Reveals must never leave content invisible when motion is off. */
   .reveal {
     opacity: 1 !important;
     transform: none !important;

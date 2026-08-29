@@ -34,19 +34,19 @@ export function ContractPanel({ status }: { status: SystemStatus | null }) {
               const url = addressUrl(address);
               return (
                 <div key={name} className="flex items-center justify-between gap-3">
-                  <dt className="truncate text-xs text-ink-200">{name}</dt>
+                  <dt className="truncate text-xs text-ink-600">{name}</dt>
                   <dd className="shrink-0">
                     {url ? (
                       <a
                         href={url}
                         target="_blank"
                         rel="noreferrer noopener"
-                        className="text-cyan-400 underline-offset-2 hover:underline"
+                        className="text-accent-600 underline-offset-2 hover:underline"
                       >
                         <Mono title={address}>{shortAddress(address)}</Mono>
                       </a>
                     ) : (
-                      <Mono className="text-ink-400" title={address}>
+                      <Mono className="text-ink-500" title={address}>
                         {shortAddress(address)}
                       </Mono>
                     )}
@@ -57,7 +57,7 @@ export function ContractPanel({ status }: { status: SystemStatus | null }) {
           </dl>
 
           {status && (
-            <dl className="mt-4 grid grid-cols-2 gap-3 border-t border-navy-700/50 pt-3 text-[11px]">
+            <dl className="mt-4 grid grid-cols-2 gap-3 border-t border-line-300/50 pt-3 text-[11px]">
               <Param label="Min bond" value={`${formatPrax(status.minBond)} PRAX`} />
               <Param label="Slash on upheld" value={`${status.slashBps / 100}%`} />
               <Param label="Challenge window" value={`${status.challengeWindowSeconds}s`} />
@@ -73,8 +73,8 @@ export function ContractPanel({ status }: { status: SystemStatus | null }) {
 function Param({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <dt className="text-ink-400">{label}</dt>
-      <dd className="mt-0.5 font-medium tabular-nums text-ink-100">{value}</dd>
+      <dt className="text-ink-500">{label}</dt>
+      <dd className="mt-0.5 font-medium tabular-nums text-ink-800">{value}</dd>
     </div>
   );
 }

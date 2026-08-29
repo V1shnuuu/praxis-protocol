@@ -1,5 +1,19 @@
 import type { Metadata, Viewport } from "next";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+
+// Variable subsets kept to latin so the font payload stays small.
+const sans = Inter({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  display: "swap",
+});
+
+const mono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
+  display: "swap",
+});
 
 // Canonical origin for Open Graph and canonical URLs. Override per environment;
 // the default is the deployed Vercel host.
@@ -40,15 +54,15 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#050912",
+  themeColor: "#FBFBF9",
   width: "device-width",
   initialScale: 1,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body className="min-h-dvh">{children}</body>
+    <html lang="en" className={`${sans.variable} ${mono.variable}`}>
+      <body className="min-h-dvh font-sans">{children}</body>
     </html>
   );
 }
