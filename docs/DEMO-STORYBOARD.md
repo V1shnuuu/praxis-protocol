@@ -6,9 +6,21 @@ browser window, no devtools, no bookmarks bar.
 
 ## Before you record
 
+Either source works, and the dashboard looks identical:
+
 ```bash
 cd frontend && npm run dev          # demo mode, no backend needed
 ```
+
+```bash
+cd backend && uvicorn praxis.main:app          # the real orchestrator
+cd frontend && NEXT_PUBLIC_API_URL=http://127.0.0.1:8000 npm run dev
+```
+
+Demo mode seeds its agents with nine days of history; the orchestrator starts
+them fresh, so its scores sit about 20 points lower (no longevity bonus yet)
+and the header reads Live rather than Demo mode. Every bond figure below is
+identical either way — those come from the contract arithmetic, not the seed.
 
 - Open `http://localhost:3000` and let it sit ~30 seconds so the feed has
   history and the sparklines have shape. A dashboard with five entries reads as
@@ -30,8 +42,8 @@ cd frontend && npm run dev          # demo mode, no backend needed
 | **0:28–0:32** | Close the modal. Cursor moves to the red button. | "Trigger rogue agent" button, TradingAgent selected. | "So what happens when an agent breaks its own rules?" |
 | **0:32–0:40** | Click. New feed row appears, flagged. Agent card turns amber. | "BUY $73k ETH — 85% of book", Policy violation badge. Rogue mode badge on the card. | "Eighty-five percent of the book into one asset. Its declared cap is twenty. The violation is committed on-chain like any other action — it can't be hidden." |
 | **0:40–0:52** | Dispute panel: card appears, countdown starts. Cut to the agent card showing locked bond. | Dispute #1 "Open — awaiting arbitration", challenge window counting down, 2,000 PRAX locked, reputation ticking down. | "A watcher spots it, stakes a fee, and opens a dispute. Two thousand PRAX of the bond is frozen while it's contested, and the reputation takes an immediate hit." |
-| **0:52–1:05** | Dispute resolves. Hold on the before/after block. | "Upheld — bond slashed". Before 10,000 PRAX / reputation 628 → After 8,000 PRAX / reputation 443. Bond slashed 2,000. Paid to challenger 1,100. | "The challenge is upheld. Two thousand PRAX burned from the bond, eleven hundred paid to the challenger who caught it, and the reputation drops from 628 to 443 — live." |
-| **1:05–1:12** | Pan up to the agent card, now red and marked Slashed. Sparkline shows the cliff. | TradingAgent: Slashed, tier NEUTRAL, 8,000 PRAX, 1 slash, sparkline dropping. | "That mark is permanent and it's portable. Any protocol can read this agent's score straight from the chain." |
+| **0:52–1:05** | Dispute resolves. Hold on the before/after block. | "Upheld — bond slashed". Before 10,000 PRAX → After 8,000 PRAX. Bond slashed 2,000. Paid to challenger 1,100. Reputation drops ~190 points, from the low 600s to the mid 400s. | "The challenge is upheld. Two thousand PRAX burned from the bond, eleven hundred paid to the challenger who caught it, and the reputation drops by nearly two hundred points — live." |
+| **1:05–1:12** | Pan up to the agent card. Sparkline shows the cliff. | TradingAgent: tier NEUTRAL, 8,000 PRAX, slash count 1 in red, sparkline dropping. Still Active — 8,000 is well over the 1,000 minimum. | "That mark is permanent and it's portable. The agent is still bonded and still allowed to act — but every protocol can now read what it did, straight from the chain." |
 | **1:12–1:15** | Cut to the On-chain deployment panel / PolygonScan tab. | Contract addresses with explorer links, or the verified contract on Amoy. | "All of it on Polygon Amoy. Praxis Protocol." |
 
 ---
@@ -40,6 +52,11 @@ cd frontend && npm run dev          # demo mode, no backend needed
 
 - **The before/after block at 0:52 is the shot that matters.** Give it four
   seconds of stillness. Everything else can be tightened if you run long.
+- **Don't script the exact reputation numbers.** The bond figures are fixed by
+  the contract — 10,000 → 8,000, 2,000 slashed, 1,100 to the challenger, every
+  run. The score depends on how many clean attestations landed before you hit
+  the button, so it shifts by a few points between takes. The drop is always
+  about 190: 150 for the slash and 40 for the share of the bond burned.
 - Don't narrate over the hash verification at 0:16 — let the two identical
   hashes sit on screen for a beat. It's the most technically convincing moment
   and it reads better silent.
@@ -54,3 +71,9 @@ cd frontend && npm run dev          # demo mode, no backend needed
 
 `Reset demo` restores every agent to its opening bond and clears the disputes.
 It's safe to press mid-recording; the feed repopulates within a few seconds.
+Against the orchestrator the same thing is `curl -X POST
+http://127.0.0.1:8000/api/reset`.
+
+And if an agent has already been slashed in an earlier take, you can still use
+it: a slash only takes an agent out of the system once its bond falls under the
+1,000 PRAX minimum, which takes seven of them.
