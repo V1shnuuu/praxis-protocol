@@ -23,7 +23,8 @@ export function AgentList({
     <Panel
       title="Registered agents"
       subtitle="Each bonded against a policy it declared at registration"
-      bodyClassName="p-4 sm:p-5"
+      flush
+      bodyClassName=""
     >
       {error ? (
         <ErrorState message={error} onRetry={onRetry} />

@@ -7,6 +7,15 @@
  * maths; all timestamps are Unix seconds.
  */
 
+/**
+ * An agent's CURRENT standing, not its history.
+ *   active   — bonded at or above minBond, free to act
+ *   disputed — at least one dispute open against it right now
+ *   slashed  — slashed below minBond, so AgentRegistry has deactivated it
+ *   inactive — deregistered by its owner
+ * An agent that has been slashed before but still holds enough bond is
+ * `active`; its history lives in slashCount and the reputation penalty.
+ */
 export type AgentStatus = "active" | "disputed" | "slashed" | "inactive";
 
 export type AgentKind = "trading" | "dao-voting" | "lending";

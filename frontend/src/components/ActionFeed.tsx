@@ -34,7 +34,7 @@ export function ActionFeed({
       title="Live action feed"
       subtitle="Every decision, hashed and committed on-chain"
       action={
-        <span className="flex items-center gap-1.5 text-[11px] text-ink-400">
+        <span className="flex items-center gap-1.5 text-[11px] text-ink-500">
           <Dot tone={liveMode ? "clean" : "muted"} pulse={liveMode} />
           {liveMode ? "Streaming" : "Paused"}
         </span>
@@ -62,7 +62,7 @@ export function ActionFeed({
           hint="As agents make decisions, each one is hashed and committed on-chain. They will stream in here."
         />
       ) : (
-        <ul className="scroll-slim min-h-0 flex-1 divide-y divide-navy-700/40 overflow-y-auto">
+        <ul className="scroll-slim min-h-0 flex-1 divide-y divide-line-300/40 overflow-y-auto">
           {attestations.map((attestation) => (
             <FeedRow
               key={attestation.attestationId}
@@ -100,7 +100,7 @@ function FeedRow({
       <button
         type="button"
         onClick={() => onSelect(attestation)}
-        className={`flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-navy-800/50 ${
+        className={`flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-paper-100/50 ${
           violating ? "bg-state-slashed/[0.06]" : ""
         }`}
         aria-label={`Reveal decision trail for attestation ${attestation.attestationId}`}
@@ -111,27 +111,27 @@ function FeedRow({
 
         <span className="min-w-0 flex-1">
           <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <span className="truncate text-xs font-medium text-ink-50">{attestation.summary}</span>
+            <span className="truncate text-xs font-medium text-ink-900">{attestation.summary}</span>
             {attestation.slashed && <Badge tone="slashed">Slashed</Badge>}
             {attestation.disputed && <Badge tone="disputed">Disputed</Badge>}
             {violating && !attestation.slashed && !attestation.disputed && (
               <Badge tone="disputed">Policy violation</Badge>
             )}
           </span>
-          <span className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-ink-400">
-            <span className="text-ink-200">{attestation.agentName}</span>
+          <span className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-ink-500">
+            <span className="text-ink-600">{attestation.agentName}</span>
             <span aria-hidden>·</span>
             <Badge tone={ACTION_TONE[attestation.actionType]}>{attestation.actionType}</Badge>
             <span aria-hidden>·</span>
             <span className="tabular-nums">{timeAgo(attestation.timestamp, now)}</span>
             <span aria-hidden>·</span>
-            <Mono className="text-ink-600" title={attestation.trailHash}>
+            <Mono className="text-ink-400" title={attestation.trailHash}>
               {shortHash(attestation.trailHash)}
             </Mono>
           </span>
         </span>
 
-        <span className="mt-0.5 shrink-0 text-[10px] text-ink-600 transition-colors group-hover:text-cyan-400">
+        <span className="mt-0.5 shrink-0 text-[10px] text-ink-400 transition-colors group-hover:text-accent-600">
           #{attestation.attestationId}
         </span>
       </button>
