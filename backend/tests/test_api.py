@@ -80,9 +80,15 @@ async def _rogue_and_settle(http: httpx.AsyncClient, agent_id: int) -> dict:
 
 
 async def test_status_reports_the_ledger_it_is_running_against(client):
+    """`mode` says an orchestrator is answering; the chain fields say whether
+    one is attached.
+
+    Reporting "demo" here would make the dashboard claim it is "driving itself
+    from an in-browser simulation" while it is in fact driving this service.
+    """
     body = (await client.get("/api/status")).json()
-    assert body["mode"] == "demo"  # no chain attached
-    assert body["network"] == "simulation"
+    assert body["mode"] == "live"
+    assert body["network"] == "simulation"  # ...but no chain behind it
     assert body["chainId"] == 0
     assert body["contracts"] is None
     assert body["minBond"] == "1000"
