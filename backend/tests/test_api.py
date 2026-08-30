@@ -56,6 +56,26 @@ async def _await_dispute(http: httpx.AsyncClient, *, status: str | None = None) 
     raise AssertionError(f"no dispute reached {status or 'existence'} within {TIMEOUT}s")
 
 
+async def _rogue_and_settle(http: httpx.AsyncClient, agent_id: int) -> dict:
+    """Sends an agent rogue and waits for *its own* dispute to be resolved.
+
+    Waiting on ``disputes[0]`` alone is not enough once an agent has been slashed
+    before: the previous verdict is still at the head of the list and would be
+    read as this one's.
+    """
+    before = len((await http.get("/api/disputes")).json())
+    response = await http.post(f"/api/agents/{agent_id}/rogue")
+    assert response.status_code == 200, response.json()
+
+    deadline = asyncio.get_running_loop().time() + TIMEOUT
+    while asyncio.get_running_loop().time() < deadline:
+        disputes = (await http.get("/api/disputes")).json()
+        if len(disputes) > before and disputes[0]["status"] != "open":
+            return disputes[0]
+        await asyncio.sleep(0.02)
+    raise AssertionError(f"the new dispute did not resolve within {TIMEOUT}s")
+
+
 # ----------------------------------------------------------------------- status
 
 
@@ -205,6 +225,12 @@ async def test_the_upheld_dispute_slashes_the_bond_and_pays_the_challenger(clien
 
 
 async def test_the_slashed_agent_carries_the_mark(client):
+    """A slash is permanent history, but it is not a life sentence.
+
+    ``status`` is current standing, per the semantics documented in types.ts:
+    an agent still bonded above minBond stays ``active`` and can act again. The
+    slash shows up in slashCount, the reputation penalty and the trend.
+    """
     agent = (await client.get("/api/agents")).json()[0]
     await client.post(f"/api/agents/{agent['agentId']}/rogue")
     await _await_dispute(client, status="upheld")
@@ -212,12 +238,61 @@ async def test_the_slashed_agent_carries_the_mark(client):
     after = next(
         a for a in (await client.get("/api/agents")).json() if a["agentId"] == agent["agentId"]
     )
-    assert after["bond"] == "8000"
+    assert after["bond"] == "8000"  # still well above the 1,000 minimum
     assert after["slashCount"] == 1
-    assert after["status"] == "slashed"
+    assert after["status"] == "active"
     assert after["reputation"] < agent["reputation"]
     assert after["rogue"] is False  # caught, so no longer rogue
     assert len(after["reputationHistory"]) >= 2
+
+
+async def test_an_agent_can_be_sent_rogue_more_than_once(client):
+    """Regression: a demo that only runs once is a demo that fails on the day.
+
+    Reporting any past slash as ``slashed`` used to take the agent out of the
+    eligible set, so each agent could be demoed exactly once.
+    """
+    agent = (await client.get("/api/agents")).json()[0]
+
+    for expected_bond, expected_slashes in (("8000", 1), ("6400", 2)):
+        await _rogue_and_settle(client, agent["agentId"])
+
+        after = next(
+            a for a in (await client.get("/api/agents")).json() if a["agentId"] == agent["agentId"]
+        )
+        assert after["bond"] == expected_bond  # 20% of the remaining bond each time
+        assert after["slashCount"] == expected_slashes
+        assert after["status"] == "active"
+
+
+async def test_an_agent_slashed_under_the_minimum_bond_is_out(client):
+    """The one case that does end in ``slashed``: AgentRegistry deactivates it."""
+    # 4,000 PRAX loses 20% of what remains each time:
+    #   3200, 2560, 2048, 1638.4, 1310.72, 1048.576, then 838.8608 — the first
+    # figure under the 1,000 minimum. The fractions are real: the contract
+    # divides in wei, and format_prax reports the amount exactly rather than
+    # rounding it into something the chain would disagree with.
+    agents = (await client.get("/api/agents")).json()
+    lending = next(a for a in agents if a["name"] == "LendingAgent")
+
+    bonds = []
+    for _ in range(7):
+        await _rogue_and_settle(client, lending["agentId"])
+        after = next(
+            a for a in (await client.get("/api/agents")).json() if a["agentId"] == lending["agentId"]
+        )
+        bonds.append(after["bond"])
+
+    assert bonds == ["3200", "2560", "2048", "1638.4", "1310.72", "1048.576", "838.8608"]
+
+    # Only the last one takes it out of the system.
+    assert after["status"] == "slashed"
+    assert float(after["bond"]) < 1000
+    assert after["slashCount"] == 7
+    assert after["reputation"] == 0  # an inactive agent scores nothing
+
+    # And it can no longer act.
+    assert (await client.post(f"/api/agents/{lending['agentId']}/rogue")).status_code == 409
 
 
 async def test_the_rogue_attestation_is_permanently_marked(client):

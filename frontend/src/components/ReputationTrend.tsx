@@ -10,9 +10,9 @@ import { REPUTATION } from "@/lib/reputation";
  */
 
 const TONE = {
-  up: { stroke: "#34D399", fill: "rgba(52,211,153,0.14)" },
-  down: { stroke: "#FB7185", fill: "rgba(251,113,133,0.14)" },
-  flat: { stroke: "#12C6E0", fill: "rgba(18,198,224,0.12)" },
+  up: { stroke: "#067A54", fill: "rgba(6,122,84,0.12)" },
+  down: { stroke: "#C2264B", fill: "rgba(194,38,75,0.12)" },
+  flat: { stroke: "#767C86", fill: "rgba(118,124,134,0.10)" },
 } as const;
 
 export type TrendDirection = keyof typeof TONE;
@@ -50,7 +50,7 @@ export function Sparkline({
           y1={height / 2}
           x2={width - 2}
           y2={height / 2}
-          stroke="#25395C"
+          stroke="#D5D5CD"
           strokeWidth={2}
           strokeLinecap="round"
           strokeDasharray="3 4"
@@ -97,7 +97,7 @@ export function Sparkline({
       <path d={area} fill={`url(#${gradientId})`} />
       <path d={line} fill="none" stroke={tone.stroke} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
       {/* Only the current value gets a marker — never a dot on every point. */}
-      <circle cx={lastX} cy={lastY} r={3} fill={tone.stroke} stroke="#0A1122" strokeWidth={2} />
+      <circle cx={lastX} cy={lastY} r={3} fill={tone.stroke} stroke="#FFFFFF" strokeWidth={2} />
     </svg>
   );
 }
@@ -106,14 +106,14 @@ export function ReputationTrend({ history, score }: { history: ReputationPoint[]
   const { direction, delta } = trendOf(history);
   const arrow = direction === "up" ? "▲" : direction === "down" ? "▼" : "—";
   const deltaColor =
-    direction === "up" ? "text-state-clean" : direction === "down" ? "text-state-slashed" : "text-ink-400";
+    direction === "up" ? "text-state-clean" : direction === "down" ? "text-state-slashed" : "text-ink-500";
 
   return (
     <div className="flex items-end gap-3">
       <div className="min-w-0">
         <div className="flex items-baseline gap-1.5">
-          <span className="text-2xl font-semibold tabular-nums leading-none text-ink-50">{score}</span>
-          <span className="text-xs text-ink-400">/ {REPUTATION.MAX_SCORE}</span>
+          <span className="text-2xl font-semibold tabular-nums leading-none text-ink-900">{score}</span>
+          <span className="text-xs text-ink-500">/ {REPUTATION.MAX_SCORE}</span>
         </div>
         <div className={`mt-1 flex items-center gap-1 text-[11px] tabular-nums ${deltaColor}`}>
           <span aria-hidden>{arrow}</span>

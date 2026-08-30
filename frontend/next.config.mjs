@@ -1,9 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  // The dashboard is a pure client of the FastAPI backend and the RPC node,
-  // so it can be exported statically for hosting anywhere.
-  eslint: { ignoreDuringBuilds: false },
   // Do not emit AGENTS.md / CLAUDE.md into the repo on every build.
   agentRules: false,
   // Dev-server origins allowed to request build assets. Without these, opening

@@ -105,11 +105,11 @@ export function WalletConnect({ status }: { status: SystemStatus | null }) {
         </Button>
       ) : (
         <Badge tone="cyan" className="whitespace-nowrap">
-          <span className="h-1.5 w-1.5 rounded-full bg-cyan-400" aria-hidden />
-          <Mono className="text-cyan-400">{shortAddress(account)}</Mono>
+          <span className="h-1.5 w-1.5 rounded-full bg-accent-500" aria-hidden />
+          <Mono className="text-accent-600">{shortAddress(account)}</Mono>
         </Badge>
       )}
-      <span className="hidden text-[10px] text-ink-600 lg:inline">read-only</span>
+      <span className="hidden text-[10px] text-ink-400 lg:inline">read-only</span>
     </div>
   );
 }

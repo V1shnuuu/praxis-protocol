@@ -177,7 +177,7 @@ Unix seconds**.
 
 ```bash
 pip install -e ".[dev]"
-pytest                    # 198 tests, no network, no chain, no model
+pytest                    # 200 tests, no network, no chain, no model
 ```
 
 | File | Holds the line on |

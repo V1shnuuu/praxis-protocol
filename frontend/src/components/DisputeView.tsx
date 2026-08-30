@@ -33,7 +33,8 @@ export function DisputeView({
           ? `${openCount} awaiting arbitration`
           : "Challenged attestations and how they resolved"
       }
-      bodyClassName="p-4 sm:p-5"
+      flush
+      bodyClassName=""
     >
       {error ? (
         <ErrorState message={error} onRetry={onRetry} />

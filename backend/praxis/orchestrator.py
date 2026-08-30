@@ -477,12 +477,16 @@ class Orchestrator:
             state = await self._call(self._ledger.agent, runtime.ledger_id)
             score = await self._call(self._ledger.reputation, runtime.ledger_id)
 
+            # Status is the agent's CURRENT standing, matching AgentRegistry:
+            # only a bond that has fallen under minBond takes an agent out of
+            # the system. Past slashes are history — they show in slashCount,
+            # the reputation penalty and the trend — and must not zombify an
+            # agent that is still bonded and still allowed to act. The states
+            # are documented in frontend/src/lib/types.ts.
             if not state.active:
                 status = "slashed"
             elif state.open_disputes > 0:
                 status = "disputed"
-            elif state.slash_count > 0:
-                status = "slashed"
             else:
                 status = "active"
 

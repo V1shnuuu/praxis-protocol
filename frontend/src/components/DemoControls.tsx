@@ -29,10 +29,10 @@ export function DemoControls({
 
   return (
     <section className="panel overflow-hidden">
-      <div className="flex flex-col gap-4 border-l-2 border-state-slashed/60 px-4 py-4 sm:px-5 lg:flex-row lg:items-center">
+      <div className="flex flex-col gap-5 px-5 py-5 sm:px-6 lg:flex-row lg:items-center">
         <div className="min-w-0 flex-1">
-          <h2 className="text-sm font-semibold text-ink-50">Live demo</h2>
-          <p className="mt-1 max-w-2xl text-xs leading-relaxed text-ink-400">
+          <h2 className="text-sm font-semibold text-ink-900">Live demo</h2>
+          <p className="mt-1 max-w-2xl text-xs leading-relaxed text-ink-500">
             Make an agent violate the policy it bonded against. A watcher stakes a fee and opens a
             dispute, the arbiter upholds it, and the bond is slashed — the whole loop, on screen, in
             about fifteen seconds.
@@ -48,7 +48,7 @@ export function DemoControls({
             value={target ?? ""}
             onChange={(event) => setSelected(Number(event.target.value))}
             disabled={eligible.length === 0 || busy}
-            className="rounded-lg border border-navy-600 bg-navy-800 px-3 py-2 text-sm text-ink-100 disabled:text-ink-600"
+            className="rounded-full border border-line-300 bg-paper-0 px-4 py-2 text-sm text-ink-800 transition-colors hover:border-line-400 disabled:text-ink-400"
           >
             {eligible.length === 0 ? (
               <option value="">No eligible agents</option>
@@ -80,8 +80,8 @@ export function DemoControls({
 
       {lastMessage && (
         <p
-          className={`border-t border-navy-700/60 px-4 py-2 text-[11px] sm:px-5 ${
-            lastMessage.tone === "error" ? "text-state-slashed" : "text-cyan-400"
+          className={`border-t border-line-300/60 px-4 py-2 text-[11px] sm:px-5 ${
+            lastMessage.tone === "error" ? "text-state-slashed" : "text-accent-600"
           }`}
           role="status"
         >

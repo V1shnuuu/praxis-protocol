@@ -67,11 +67,11 @@ export function StatBar({
     <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
       {tiles.map((tile) => (
         <div key={tile.label} className="panel px-4 py-3">
-          <p className="text-[10px] uppercase tracking-wider text-ink-400">{tile.label}</p>
-          <p className={`mt-1 text-xl font-semibold tabular-nums ${tile.tone ?? "text-ink-50"}`}>
+          <p className="text-[10px] uppercase tracking-wider text-ink-500">{tile.label}</p>
+          <p className={`mt-1 text-xl font-semibold tabular-nums ${tile.tone ?? "text-ink-900"}`}>
             {tile.value}
           </p>
-          {tile.sub && <p className="mt-0.5 text-[11px] text-ink-400">{tile.sub}</p>}
+          {tile.sub && <p className="mt-0.5 text-[11px] text-ink-500">{tile.sub}</p>}
         </div>
       ))}
     </div>
