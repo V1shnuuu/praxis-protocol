@@ -6,17 +6,19 @@
   "scripts": {
     "build": "hardhat compile",
     "test": "hardhat test",
-    "deploy:local": "hardhat run scripts/deploy.js --network hardhat",
-    "deploy:amoy": "hardhat run scripts/deploy.js --network amoy",
-    "verify:amoy": "hardhat run scripts/verify.js --network amoy",
-    "demo:amoy": "hardhat run scripts/demo-flow.js --network amoy",
-    "node": "hardhat node",
-    "wallets:new": "hardhat run scripts/new-wallets.js",
-    "fund:amoy": "hardhat run scripts/fund.js --network amoy",
-    "demo:local": "hardhat run scripts/demo-flow.js",
     "coverage": "hardhat coverage",
+    "node": "hardhat node",
+    "deploy:local": "hardhat run scripts/deploy.js --network hardhat",
     "deploy:localhost": "hardhat run scripts/deploy.js --network localhost",
-    "demo:localhost": "hardhat run scripts/demo-flow.js --network localhost"
+    "fund:localhost": "hardhat run scripts/fund.js --network localhost",
+    "demo:local": "hardhat run scripts/demo-flow.js",
+    "demo:localhost": "hardhat run scripts/demo-flow.js --network localhost",
+    "wallets:new": "hardhat run scripts/new-wallets.js",
+    "deploy:amoy": "hardhat run scripts/deploy.js --network amoy",
+    "fund:amoy": "hardhat run scripts/fund.js --network amoy",
+    "demo:amoy": "hardhat run scripts/demo-flow.js --network amoy",
+    "verify:amoy": "hardhat run scripts/verify.js --network amoy",
+    "verify:localhost": "hardhat run scripts/verify.js --network localhost"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",

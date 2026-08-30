@@ -56,9 +56,9 @@ operator asserts.
    │  │ AgentRegistry   identity   │  │   │  revealed on dispute         │
    │  │ ActionAttestation  log     │  │   └──────────────────────────────┘
    │  │ DisputeSlashing  challenge │  │
-   │  │ ReputationScore  0–1000    │  │
-   │  └────────────────────────────┘  │
-   └───────────────┬──────────────────┘
+   │  │ ReputationScore  0–1000    │  │   …or, with nothing deployed yet,
+   │  └────────────────────────────┘  │   an in-process ledger mirroring
+   └───────────────┬──────────────────┘   the same arithmetic
                    │  REST (agents, attestations, disputes)  +  read-only RPC
                    ▼
    ┌──────────────────────────────────────────────────────────────────────┐
@@ -73,8 +73,8 @@ operator asserts.
 ```
 praxis-protocol/
 ├── contracts/               Solidity + Hardhat            — complete
+├── backend/                 FastAPI orchestrator          — complete
 ├── frontend/                Next.js dashboard             — complete
-├── backend/                 FastAPI orchestrator          — not in this repo (see below)
 ├── docs/DEMO-STORYBOARD.md  60–90s demo script
 ├── deployed-addresses.json  written by the deploy script, read by backend + frontend
 └── deployments/abis/        generated ABIs, read by backend + frontend
@@ -87,15 +87,25 @@ praxis-protocol/
 | Layer | State |
 | --- | --- |
 | Contracts | Complete. 66 tests, 97.5% statement / 99.0% line coverage. |
+| Orchestrator | Complete. 213 tests. Runs with or without a chain; one env var switches it. |
 | Dashboard | Complete. Runs standalone in demo mode; one env var switches it to the live backend. |
-| Backend | **Not present in this repository.** See *Wiring the backend* below. |
-| Amoy deployment | **Not yet deployed.** See *Deploying* below. |
+| Amoy deployment | **Not yet deployed** — it needs a funded key. See *Deploying* below. |
+
+Both halves run without a chain, and neither one fakes it while doing so.
 
 The dashboard ships with a self-contained **demo mode**: with no backend
 configured it simulates three agents, their attestations, and the full
 rogue → dispute → slash loop in the browser, using the same arithmetic as the
 contracts. Trail hashes are real keccak256 digests and are verified
 client-side, so the tamper-evidence story is genuine even without a chain.
+
+The orchestrator does the same one layer down. With no deployment recorded it
+runs against an in-process ledger that mirrors the contracts line by line, so
+the agents really decide, the trails are really hashed and stored, the watcher
+really catches breaches, and the bond arithmetic is the arithmetic Amoy would
+produce. Deploying swaps the ledger and nothing else — the agents, the watcher
+and the API are unchanged, and `/api/status` starts reporting `live` with
+transaction hashes attached.
 
 ---
 
@@ -114,7 +124,23 @@ npm run demo:local        # register → attest → go rogue → dispute → sla
 Full contract reference, economics and the reputation formula:
 [`contracts/README.md`](contracts/README.md).
 
-### 2. Dashboard
+### 2. Orchestrator
+
+```bash
+cd backend
+python -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev]"
+pytest                    # 213 tests
+uvicorn praxis.main:app   # http://127.0.0.1:8000
+```
+
+No `.env`, no chain and no Ollama required — it starts against the in-process
+ledger and the agents begin deciding immediately. API docs at `/docs`.
+
+Full reference, including the two-ledger design and how to attach a deployment:
+[`backend/README.md`](backend/README.md).
+
+### 3. Dashboard
 
 ```bash
 cd frontend
@@ -125,7 +151,7 @@ npm run dev               # http://localhost:3000
 That's it — no backend or chain required. The dashboard opens in demo mode with
 three agents already operating.
 
-To point it at a live orchestrator:
+To point it at the orchestrator instead:
 
 ```bash
 cp .env.example .env.local
@@ -159,8 +185,16 @@ Roughly 60 seconds, entirely from the UI.
 
 "Reset demo" puts every agent back to its opening bond so you can run it again.
 
-The same flow against real contracts is `cd contracts && npm run demo:amoy`,
-which prints a PolygonScan link for every transaction.
+The numbers above are the dashboard's own demo mode, whose agents are seeded
+with a few days of history. The orchestrator runs the identical loop from a
+standing start, so its scores differ by the longevity bonus its agents have not
+earned yet — the bond arithmetic (10,000 → 8,000, 1,100 to the challenger) is
+the same either way, because both derive it from the contracts.
+
+The same flow with the orchestrator driving it is `NEXT_PUBLIC_API_URL=... npm
+run dev` against `uvicorn praxis.main:app`; against real contracts on Amoy it is
+`cd contracts && npm run demo:amoy`, which prints a PolygonScan link for every
+transaction.
 
 Shot-by-shot script for recording: [`docs/DEMO-STORYBOARD.md`](docs/DEMO-STORYBOARD.md).
 
@@ -184,28 +218,30 @@ On-chain deployment panel.
 
 ---
 
-## Wiring the backend
+## How the two halves meet
 
 The dashboard talks to the outside world through exactly one file —
 [`frontend/src/lib/api.ts`](frontend/src/lib/api.ts). It defines the `PraxisApi`
 interface, a `demo` implementation, and an `http` implementation. Every
-component is written against the interface, so connecting a real orchestrator is
-a change in that file and nowhere else.
+component is written against the interface, so demo mode and live mode differ in
+that file and nowhere else.
 
-The `http` implementation expects these routes:
+The orchestrator serves exactly the routes the `http` implementation expects:
 
 | Method | Route | Returns |
 | --- | --- | --- |
 | `GET` | `/api/status` | `SystemStatus` |
-| `GET` | `/api/agents` | `Agent[]` |
+| `GET` | `/api/agents` | `Agent[]` (newest reputation history last) |
 | `GET` | `/api/attestations?limit=40` | `Attestation[]` (newest first) |
-| `GET` | `/api/attestations/{id}/trail` | `DecisionTrail` |
+| `GET` | `/api/attestations/{id}/trail` | `DecisionTrail`, 404 if unknown |
 | `GET` | `/api/disputes` | `Dispute[]` (newest first) |
 | `POST` | `/api/agents/{id}/rogue` | `{ attestationId: number }` |
-| `POST` | `/api/disputes/{id}/resolve` | body `{ upheld: boolean }` |
+| `POST` | `/api/disputes/{id}/resolve` | `Dispute`, body `{ upheld: boolean }` |
+| `POST` | `/api/reset` | `204`; simulated mode only |
 
-Field shapes are in [`frontend/src/lib/types.ts`](frontend/src/lib/types.ts).
-Two conventions matter:
+Field shapes are in [`frontend/src/lib/types.ts`](frontend/src/lib/types.ts) and
+mirrored as pydantic models in
+[`backend/praxis/models.py`](backend/praxis/models.py). Two conventions matter:
 
 - **Token amounts are decimal strings in whole PRAX**, not wei (`"8000"`, not
   `"8000000000000000000000"`). Timestamps are Unix **seconds**.
@@ -216,16 +252,24 @@ Two conventions matter:
   ```python
   body = {"attestationId": ..., "agentId": ..., "policy": ...,
           "inputs": {...}, "reasoning": ..., "output": {...}, "nonce": ...}
-  canonical = json.dumps(body, sort_keys=True, separators=(",", ":"))
-  trail_hash = Web3.keccak(text=canonical).hex()
+  canonical = json.dumps(body, sort_keys=True, separators=(",", ":"),
+                         ensure_ascii=False)
+  trail_hash = keccak(text=canonical).hex()
   ```
 
-  The rule is documented in
-  [`frontend/src/lib/canonical.ts`](frontend/src/lib/canonical.ts). If the
-  backend hashes a different byte sequence, the dashboard's verification banner
-  will correctly report a mismatch.
+  The rule lives in [`frontend/src/lib/canonical.ts`](frontend/src/lib/canonical.ts)
+  and [`backend/praxis/canonical.py`](backend/praxis/canonical.py), and the two
+  are held together by generated test vectors rather than by good intentions:
+  `backend/tests/vectors/generate_vectors.mjs` imports the dashboard's own
+  implementation and `backend/tests/test_canonical.py` replays every vector
+  through the Python one. Getting this wrong is not a subtle bug — the
+  dashboard's verification banner goes red on an honest trail — and the two
+  places it is easy to get wrong are non-ASCII escaping (`ensure_ascii=False`)
+  and integral floats (`JSON.stringify(4000.0)` is `"4000"`).
 
-If your routes differ, remap them in the `paths` object at the top of `api.ts`.
+Swapping in a different orchestrator is a matter of serving those eight routes;
+if yours uses different paths, remap them in the `paths` object at the top of
+`api.ts`.
 
 ---
 
@@ -244,6 +288,16 @@ If your routes differ, remap them in the `paths` object at the top of `api.ts`.
   up better off than before it.
 - **The dashboard verifies, it doesn't trust.** Every revealed trail is
   re-hashed in the browser and compared against the on-chain commitment.
+- **The watcher isn't told which agent went rogue.** It re-derives the violation
+  from the committed decision alone, exactly as an outside observer would. A
+  flag the orchestrator sets on itself would prove nothing.
+- **A model that argues its way into a breach is committed, not corrected.**
+  The orchestrator does not sanity-check the LLM's output against the policy
+  before publishing it. Quietly fixing it would hide the one failure this
+  protocol exists to make visible.
+- **The orchestrator runs against one ledger interface, not two code paths.**
+  Chain and simulation are implementations of the same protocol, so the demo
+  without a deployment exercises the code that will run with one.
 
 ## Licence
 

@@ -1,0 +1,35 @@
+[project]
+name = "praxis-orchestrator"
+version = "0.1.0"
+description = "FastAPI orchestrator for Praxis Protocol: runs the agents, commits their decision trails on-chain, watches for policy violations and serves the dashboard."
+requires-python = ">=3.11"
+license = { text = "MIT" }
+dependencies = [
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.27",
+    "pydantic>=2.6",
+    "httpx>=0.27",
+    "eth-hash[pycryptodome]>=0.7",
+    "eth-utils>=4.0",
+]
+
+[project.optional-dependencies]
+# Only needed to talk to a deployed stack. Without it the orchestrator still
+# runs, against the in-process ledger.
+chain = ["web3>=7.0,<8.0"]
+dev = ["pytest>=8.0", "pytest-asyncio>=0.23", "httpx>=0.27"]
+
+[project.scripts]
+praxis-orchestrator = "praxis.main:run"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["praxis*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+filterwarnings = ["ignore::DeprecationWarning"]
