@@ -5,7 +5,8 @@ import type { Attestation, DecisionTrail, TrailVerification } from "@/lib/types"
 import { api, verifyTrail } from "@/lib/api";
 import { txUrl } from "@/lib/config";
 import { Badge, Button, Mono, Skeleton } from "@/components/ui/primitives";
-import { formatClock, pretty, shortHash } from "@/lib/format";
+import { formatClock, shortHash } from "@/lib/format";
+import { canonicalTrailJson } from "@/lib/canonical";
 import { useDismissable } from "@/lib/hooks";
 
 /**
@@ -184,8 +185,8 @@ function TrailModalContent({
                   {showRaw ? "Hide" : "Show"} canonical JSON (the exact bytes that were hashed)
                 </button>
                 {showRaw && (
-                  <pre className="scroll-slim mt-2 max-h-56 overflow-auto rounded-lg border border-navy-700/60 bg-navy-950/70 p-3 font-mono text-[10px] leading-relaxed text-ink-200">
-                    {pretty({
+                  <pre className="scroll-slim mt-2 max-h-56 overflow-auto whitespace-pre-wrap break-all rounded-lg border border-navy-700/60 bg-navy-950/70 p-3 font-mono text-[10px] leading-relaxed text-ink-200">
+                    {canonicalTrailJson({
                       attestationId: trail.attestationId,
                       agentId: trail.agentId,
                       inputs: trail.inputs,
