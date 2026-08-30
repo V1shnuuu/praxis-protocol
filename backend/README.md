@@ -75,6 +75,45 @@ same "an agent under `minBond` stops being active" — so the numbers on the
 dashboard without a chain are the numbers Amoy would produce.
 `tests/test_ledger.py` pins each rule to the contract it came from.
 
+## Rehearsing the chain path locally
+
+Do this before Amoy. It exercises `ChainLedger` against real contracts and real
+transactions on a throwaway chain, so a mistake costs a restart rather than
+testnet POL and an hour of the demo window.
+
+```bash
+cd ../contracts
+npx hardhat node &        # a local chain on 127.0.0.1:8545
+npm run deploy:localhost  # writes ../deployed-addresses.json + ../deployments/abis/
+npm run fund:localhost    # PRAX + gas for the agent and challenger
+```
+
+Then point the orchestrator at it, signing with Hardhat's well-known accounts —
+#0 as arbiter, #1 as the agent owner, #2 as the challenger:
+
+```bash
+cd ../backend
+pip install -e ".[chain]"
+PRAXIS_MODE=live PRAXIS_NETWORK=localhost PRAXIS_RPC_URL=http://127.0.0.1:8545 \
+ARBITER_PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 \
+AGENT_PRIVATE_KEY=0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d \
+CHALLENGER_PRIVATE_KEY=0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a \
+uvicorn praxis.main:app
+```
+
+Those keys are Hardhat's published test accounts. They are public, they hold
+nothing on any real network, and they must never appear in a `.env` that also
+names a live RPC.
+
+`/api/status` should report `"mode": "live"`, `chainId` 31337 and the five
+contract addresses; every attestation should carry a `txHash`. The rogue →
+dispute → slash flow produces the same figures as the simulation — bond 10,000 →
+8,000, 2,000 slashed, 1,100 to the challenger — which is the point of the two
+implementations agreeing.
+
+`deployed-addresses.json` picks up a `localhost` key from this. It is local
+scratch; there is no reason to commit it.
+
 ## Going live
 
 ```bash
@@ -93,6 +132,11 @@ The orchestrator reads the address book itself; there is nothing else to wire.
 On startup it adopts agents already registered to the signing key rather than
 registering duplicates, so restarting does not mint a new identity or post a
 second bond.
+
+The three keys must be three different accounts: `DisputeSlashing` rejects a
+challenge signed by an address authorised to act for the agent it is
+challenging, so an orchestrator sharing one key between the agent and the
+watcher cannot open a dispute at all.
 
 ## The trail hash
 
@@ -177,7 +221,7 @@ Unix seconds**.
 
 ```bash
 pip install -e ".[dev]"
-pytest                    # 200 tests, no network, no chain, no model
+pytest                    # 213 tests, no network, no chain, no model
 ```
 
 | File | Holds the line on |
@@ -190,6 +234,7 @@ pytest                    # 200 tests, no network, no chain, no model
 | `test_llm.py` | unusable model output falling back rather than being committed |
 | `test_store.py` | refusing to store a trail that doesn't match its commitment |
 | `test_api.py` | the REST contract, and the rogue → dispute → slash flow |
+| `test_chain_mapping.py` | the struct indices and enum ordinals `chain.py` decodes by |
 
 ## Configuration
 

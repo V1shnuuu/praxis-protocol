@@ -42,8 +42,12 @@ CONTRACT_NAMES = (
     "ReputationScore",
 )
 
-#: DisputeSlashing.Status
-_DISPUTE_STATUS = {0: "open", 1: "upheld", 2: "rejected"}
+#: DisputeSlashing.Status. The enum leads with `None`, so Open is 1, not 0 —
+#: off-by-one here reports every open dispute as upheld, which shows a false
+#: "bond slashed" verdict on the dashboard and makes resolve() refuse to run
+#: because the dispute already looks decided. tests/test_chain_mapping.py pins
+#: these against the Solidity.
+_DISPUTE_STATUS = {1: "open", 2: "upheld", 3: "rejected"}
 
 
 class ChainUnavailable(RuntimeError):
@@ -262,6 +266,9 @@ class ChainLedger(Ledger):
         #          resolvedAt, lockedAmount, slashedAmount, challengerPayout,
         #          bondBefore, bondAfter, status
         view = self._disputes.functions.getDispute(dispute_id).call()
+        raw_status = int(view[13])
+        if raw_status == 0:  # Status.None — the slot was never written
+            raise LedgerError(f"unknown dispute {dispute_id}")
         resolved_at = int(view[7]) or None
         return LedgerDispute(
             dispute_id=int(view[0]),
@@ -272,7 +279,7 @@ class ChainLedger(Ledger):
             reason=str(view[5]),
             opened_at=int(view[6]),
             resolved_at=resolved_at,
-            status=_DISPUTE_STATUS.get(int(view[13]), "open"),  # type: ignore[arg-type]
+            status=_DISPUTE_STATUS[raw_status],  # type: ignore[arg-type]
             bond_before_wei=int(view[11]),
             bond_after_wei=int(view[12]) if resolved_at else None,
             slashed_wei=int(view[9]) if resolved_at else None,
@@ -338,8 +345,15 @@ class ChainLedger(Ledger):
 
 
 def _hex(receipt) -> str:
+    """The transaction hash, always 0x-prefixed.
+
+    hexbytes 1.x returns bare hex from ``.hex()`` where 0.x returned it
+    prefixed. The dashboard builds explorer links by concatenating onto
+    ``/tx/``, so an unprefixed hash produces a link that 404s.
+    """
     value = receipt["transactionHash"]
-    return value.hex() if hasattr(value, "hex") else str(value)
+    text = value.hex() if hasattr(value, "hex") else str(value)
+    return text if text.startswith("0x") else f"0x{text}"
 
 
 def _load_abis(abi_dir: Path) -> dict[str, list]:

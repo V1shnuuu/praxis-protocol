@@ -87,7 +87,7 @@ praxis-protocol/
 | Layer | State |
 | --- | --- |
 | Contracts | Complete. 66 tests, 97.5% statement / 99.0% line coverage. |
-| Orchestrator | Complete. 200 tests. Runs with or without a chain; one env var switches it. |
+| Orchestrator | Complete. 213 tests. Runs with or without a chain; one env var switches it. |
 | Dashboard | Complete. Runs standalone in demo mode; one env var switches it to the live backend. |
 | Amoy deployment | **Not yet deployed** — it needs a funded key. See *Deploying* below. |
 
@@ -130,7 +130,7 @@ Full contract reference, economics and the reputation formula:
 cd backend
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
-pytest                    # 200 tests
+pytest                    # 213 tests
 uvicorn praxis.main:app   # http://127.0.0.1:8000
 ```
 
