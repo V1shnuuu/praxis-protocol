@@ -457,9 +457,15 @@ class Orchestrator:
     async def status(self) -> SystemStatus:
         info = await self._call(self._ledger.info)
         return SystemStatus(
-            # "demo" is what the dashboard's header reads to decide whether to
-            # say "Live"; without a chain attached, that is the honest label.
-            mode="live" if info.mode == "live" else "demo",
+            # Always "live". The dashboard uses this field to mean "is a real
+            # orchestrator answering, or is the browser simulating one itself" —
+            # its demo copy literally reads "the dashboard is driving itself
+            # from an in-browser simulation", which is false whenever this
+            # response exists at all. Whether a *chain* is attached is carried
+            # by `contracts`, `network` and `chainId`: without a deployment they
+            # are null / "simulation" / 0, and the panel correctly reports no
+            # deployment recorded.
+            mode="live",
             network=info.network,
             chainId=info.chain_id,
             explorerUrl=info.explorer_url,

@@ -61,7 +61,14 @@ orchestrator runs whether or not a deployment exists:
 | Needs | nothing | a deployment, an RPC endpoint, three funded keys |
 | Transactions | none (`txHash` is `null`) | real, with explorer links |
 | Arithmetic | ported from the Solidity | the Solidity |
-| `/api/status` reports | `"demo"` | `"live"` |
+| `/api/status` `mode` | `"live"` | `"live"` |
+| `/api/status` `contracts` | `null` | the five addresses |
+| `/api/status` `network` | `"simulation"` | `"amoy"` |
+
+`mode` is `"live"` either way: it tells the dashboard that a real orchestrator
+is answering rather than the browser simulating one, which is what its own demo
+copy claims. Whether a *chain* is attached is carried by `contracts`, `network`
+and `chainId`.
 
 `PRAXIS_MODE=auto` (the default) prefers the chain and falls back to the
 simulation with a warning, which is what makes a fresh clone runnable.
@@ -105,8 +112,8 @@ Those keys are Hardhat's published test accounts. They are public, they hold
 nothing on any real network, and they must never appear in a `.env` that also
 names a live RPC.
 
-`/api/status` should report `"mode": "live"`, `chainId` 31337 and the five
-contract addresses; every attestation should carry a `txHash`. The rogue →
+`/api/status` should report `chainId` 31337 and the five contract addresses;
+every attestation should carry a `txHash`. The rogue →
 dispute → slash flow produces the same figures as the simulation — bond 10,000 →
 8,000, 2,000 slashed, 1,100 to the challenger — which is the point of the two
 implementations agreeing.
