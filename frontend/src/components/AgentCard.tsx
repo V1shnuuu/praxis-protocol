@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { Agent } from "@/lib/types";
 import { Badge, Button, Dot, Mono } from "@/components/ui/primitives";
 import { ReputationTrend } from "@/components/ReputationTrend";
 import { formatPrax, shortAddress } from "@/lib/format";
+import { useTilt } from "@/lib/parallax";
 
 const STATUS = {
   active: { tone: "clean", label: "Active" },
@@ -29,15 +30,19 @@ export function AgentCard({
   rogueBusy: boolean;
 }) {
   const [policyOpen, setPolicyOpen] = useState(false);
+  const card = useRef<HTMLElement>(null);
+  useTilt(card, { max: 4, lift: -5 });
+
   const status = STATUS[agent.status];
   const locked = Number(agent.lockedBond) > 0;
   const canGoRogue = agent.status !== "slashed" && agent.status !== "inactive" && !agent.rogue;
 
   return (
     <article
-      className={`panel-raised flex flex-col gap-4 p-4 transition-colors ${
-        agent.status === "disputed" ? "ring-1 ring-state-disputed/40" : ""
-      } ${agent.status === "slashed" ? "ring-1 ring-state-slashed/30" : ""}`}
+      ref={card}
+      className={`tilt panel panel-interactive flex flex-col gap-4 p-4 ${
+        agent.status === "disputed" ? "ring-1 ring-state-disputed/45 shadow-glass-lift" : ""
+      } ${agent.status === "slashed" ? "ring-1 ring-state-slashed/35" : ""}`}
     >
       <header className="flex items-start justify-between gap-3">
         <div className="min-w-0">
@@ -83,7 +88,7 @@ export function AgentCard({
         </button>
       </div>
 
-      <dl className="grid grid-cols-3 gap-3 border-t border-line-300/50 pt-3">
+      <dl className="grid grid-cols-3 gap-3 border-t border-line-200 pt-3">
         <div>
           <dt className="text-[10px] uppercase tracking-wider text-ink-500">Bond</dt>
           <dd className="mt-1 text-sm font-medium tabular-nums text-ink-900">
@@ -117,7 +122,7 @@ export function AgentCard({
         </div>
       </dl>
 
-      <div className="flex items-end justify-between gap-3 border-t border-line-300/50 pt-3">
+      <div className="flex items-end justify-between gap-3 border-t border-line-200 pt-3">
         <div>
           <p className="mb-1 text-[10px] uppercase tracking-wider text-ink-500">Reputation</p>
           <ReputationTrend history={agent.reputationHistory} score={agent.reputation} />

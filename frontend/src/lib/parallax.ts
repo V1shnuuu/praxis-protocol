@@ -3,13 +3,15 @@
 import { useEffect, useRef } from "react";
 
 /**
- * Scroll- and pointer-driven parallax.
+ * Scroll- and pointer-driven motion primitives.
  *
- * Every layer is written imperatively from a single rAF loop rather than
- * through React state: a 60fps scroll must not re-render the dashboard. Layers
- * only ever get `transform`, so the work stays on the compositor.
+ * Everything here is written imperatively from a rAF loop rather than through
+ * React state: a 60fps scroll must not re-render the dashboard, which is
+ * polling four endpoints at the same time. Layers only ever receive
+ * `transform` or a custom property that resolves to one, so the work stays on
+ * the compositor and never triggers layout.
  *
- * Honours prefers-reduced-motion by leaving every layer at its resting position.
+ * Every hook honours prefers-reduced-motion by leaving its target at rest.
  */
 
 export function prefersReducedMotion(): boolean {
@@ -107,6 +109,118 @@ export function useParallax(layers: ParallaxLayer[]) {
       window.removeEventListener("pointermove", onPointerMove);
     };
   }, []);
+}
+
+/**
+ * Tilts an element towards the pointer while it is hovered, as a `.tilt` card.
+ *
+ * The rotation is written to CSS custom properties rather than to `transform`
+ * directly, so the stylesheet keeps ownership of the transform function order
+ * (perspective first, or the rotation reads as a shear) and of the settle
+ * transition on leave.
+ *
+ * Listeners are bound to the element, not the window, so a page with a dozen
+ * tilting cards still only tracks the one the pointer is actually over.
+ */
+export function useTilt<T extends HTMLElement>(
+  ref: React.RefObject<T | null>,
+  { max = 5, lift = -4 }: { max?: number; lift?: number } = {}
+) {
+  useEffect(() => {
+    const node = ref.current;
+    if (!node) return;
+    if (prefersReducedMotion()) return;
+    // A coarse pointer has no hover state to drive this, and binding it would
+    // make the card tilt on tap and stay that way.
+    if (!window.matchMedia("(pointer: fine)").matches) return;
+
+    let frame = 0;
+    let nextX = 0;
+    let nextY = 0;
+
+    const apply = () => {
+      frame = 0;
+      node.style.setProperty("--tilt-x", `${nextY.toFixed(2)}deg`);
+      node.style.setProperty("--tilt-y", `${nextX.toFixed(2)}deg`);
+    };
+
+    const onMove = (event: PointerEvent) => {
+      const rect = node.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) return;
+      // -1..1 from the element's own centre.
+      const px = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      const py = ((event.clientY - rect.top) / rect.height) * 2 - 1;
+      nextX = px * max;
+      // Inverted: pointer below centre should tip the near edge towards you.
+      nextY = -py * max;
+      if (!frame) frame = requestAnimationFrame(apply);
+    };
+
+    const onEnter = () => {
+      node.dataset.tilting = "true";
+      node.style.setProperty("--tilt-lift", `${lift}px`);
+    };
+
+    const onLeave = () => {
+      delete node.dataset.tilting;
+      node.style.setProperty("--tilt-x", "0deg");
+      node.style.setProperty("--tilt-y", "0deg");
+      node.style.setProperty("--tilt-lift", "0px");
+    };
+
+    node.addEventListener("pointerenter", onEnter);
+    node.addEventListener("pointermove", onMove, { passive: true });
+    node.addEventListener("pointerleave", onLeave);
+
+    return () => {
+      if (frame) cancelAnimationFrame(frame);
+      node.removeEventListener("pointerenter", onEnter);
+      node.removeEventListener("pointermove", onMove);
+      node.removeEventListener("pointerleave", onLeave);
+    };
+  }, [ref, max, lift]);
+}
+
+/**
+ * Scales an element horizontally to the page's scroll progress, for a reading
+ * rail under the header.
+ *
+ * `scaleX` on a full-width bar rather than an animated `width`, so the browser
+ * never re-lays-out the header on scroll. Unlike the other hooks this one still
+ * runs under reduced motion: the rail is a position indicator, not decoration,
+ * and freezing it at zero would misreport where the reader is.
+ */
+export function useScrollProgress<T extends HTMLElement>(ref: React.RefObject<T | null>) {
+  useEffect(() => {
+    const node = ref.current;
+    if (!node) return;
+
+    let frame = 0;
+
+    const apply = () => {
+      frame = 0;
+      const doc = document.documentElement;
+      const scrollable = doc.scrollHeight - window.innerHeight;
+      // A page shorter than the viewport has no progress to report; showing a
+      // full bar there would claim the reader is at the end of nothing.
+      const progress = scrollable > 0 ? Math.min(1, Math.max(0, window.scrollY / scrollable)) : 0;
+      node.style.transform = `scaleX(${progress.toFixed(4)})`;
+    };
+
+    const schedule = () => {
+      if (!frame) frame = requestAnimationFrame(apply);
+    };
+
+    apply();
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule, { passive: true });
+
+    return () => {
+      if (frame) cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+    };
+  }, [ref]);
 }
 
 /**

@@ -57,7 +57,7 @@ export function ContractPanel({ status }: { status: SystemStatus | null }) {
           </dl>
 
           {status && (
-            <dl className="mt-4 grid grid-cols-2 gap-3 border-t border-line-300/50 pt-3 text-[11px]">
+            <dl className="mt-4 grid grid-cols-2 gap-3 border-t border-line-200 pt-3 text-[11px]">
               <Param label="Min bond" value={`${formatPrax(status.minBond)} PRAX`} />
               <Param label="Slash on upheld" value={`${status.slashBps / 100}%`} />
               <Param label="Challenge window" value={`${status.challengeWindowSeconds}s`} />

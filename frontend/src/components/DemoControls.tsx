@@ -48,7 +48,7 @@ export function DemoControls({
             value={target ?? ""}
             onChange={(event) => setSelected(Number(event.target.value))}
             disabled={eligible.length === 0 || busy}
-            className="rounded-full border border-line-300 bg-paper-0 px-4 py-2 text-sm text-ink-800 transition-colors hover:border-line-400 disabled:text-ink-400"
+            className="rounded-full border border-line-300 bg-white/[0.06] px-4 py-2 text-sm text-ink-800 backdrop-blur-sm transition-colors hover:border-line-400 hover:bg-white/[0.10] disabled:text-ink-400"
           >
             {eligible.length === 0 ? (
               <option value="">No eligible agents</option>
@@ -65,7 +65,7 @@ export function DemoControls({
             variant="danger"
             disabled={target === null || busy || targetAgent?.rogue === true}
             onClick={() => target !== null && onTriggerRogue(target)}
-            className="shadow-glow"
+            className="sheen"
           >
             {busy ? "Triggering…" : "Trigger rogue agent"}
           </Button>
@@ -80,7 +80,7 @@ export function DemoControls({
 
       {lastMessage && (
         <p
-          className={`border-t border-line-300/60 px-4 py-2 text-[11px] sm:px-5 ${
+          className={`border-t border-line-200 px-4 py-2 text-[11px] sm:px-5 ${
             lastMessage.tone === "error" ? "text-state-slashed" : "text-accent-600"
           }`}
           role="status"

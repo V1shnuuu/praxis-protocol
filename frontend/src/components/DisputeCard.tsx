@@ -34,11 +34,15 @@ export function DisputeCard({
 
   return (
     <article
-      className={`panel-raised overflow-hidden ${
-        isOpen ? "ring-1 ring-state-disputed/40" : slashed ? "ring-1 ring-state-slashed/30" : ""
+      className={`panel overflow-hidden transition-shadow duration-300 ${
+        isOpen
+          ? "shadow-glass-lift ring-1 ring-state-disputed/45"
+          : slashed
+            ? "ring-1 ring-state-slashed/35"
+            : ""
       }`}
     >
-      <header className="flex flex-wrap items-start justify-between gap-3 border-b border-line-300/50 px-4 py-3">
+      <header className="flex flex-wrap items-start justify-between gap-3 border-b border-line-200 px-4 py-3">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="text-sm font-semibold text-ink-900">
@@ -72,7 +76,7 @@ export function DisputeCard({
         </blockquote>
 
         {/* Before / after — the moment the whole protocol exists to produce. */}
-        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 rounded-lg border border-line-300/50 bg-paper-100 p-3 sm:gap-4 sm:p-4">
+        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 rounded-lg border border-line-200 bg-white/[0.04] p-3 sm:gap-4 sm:p-4">
           <BeforeAfterColumn
             label="Before"
             bond={dispute.bondBefore}
@@ -100,13 +104,13 @@ export function DisputeCard({
 
         {slashed && dispute.slashedAmount && (
           <dl className="grid grid-cols-2 gap-3 text-[11px]">
-            <div className="rounded-lg bg-state-slashed/8 px-3 py-2">
+            <div className="rounded-lg bg-state-slashed/[0.10] px-3 py-2">
               <dt className="text-ink-500">Bond slashed</dt>
               <dd className="mt-0.5 text-sm font-medium tabular-nums text-state-slashed">
                 {formatPrax(dispute.slashedAmount)} PRAX
               </dd>
             </div>
-            <div className="rounded-lg bg-state-clean/8 px-3 py-2">
+            <div className="rounded-lg bg-state-clean/[0.10] px-3 py-2">
               <dt className="text-ink-500">Paid to challenger</dt>
               <dd className="mt-0.5 text-sm font-medium tabular-nums text-state-clean">
                 {formatPrax(dispute.challengerPayout)} PRAX
@@ -116,14 +120,14 @@ export function DisputeCard({
         )}
 
         {dispute.status === "rejected" && (
-          <p className="rounded-lg bg-state-clean/8 px-3 py-2 text-[11px] leading-relaxed text-ink-600">
+          <p className="rounded-lg bg-state-clean/[0.10] px-3 py-2 text-[11px] leading-relaxed text-ink-600">
             The challenge was rejected. The staked fee was forfeited into the agent&apos;s bond, so an
             honest agent ends up better off than before the accusation.
           </p>
         )}
 
         {isOpen && (
-          <div className="flex flex-wrap items-center gap-2 border-t border-line-300/50 pt-3">
+          <div className="flex flex-wrap items-center gap-2 border-t border-line-200 pt-3">
             <span className="mr-auto text-[10px] text-ink-500">Arbiter action</span>
             <Button
               size="sm"
@@ -140,7 +144,7 @@ export function DisputeCard({
         )}
 
         {(dispute.openTxHash || dispute.resolveTxHash) && (
-          <div className="flex flex-wrap gap-3 border-t border-line-300/50 pt-3 text-[11px]">
+          <div className="flex flex-wrap gap-3 border-t border-line-200 pt-3 text-[11px]">
             <TxLink label="Open tx" hash={dispute.openTxHash} />
             <TxLink label="Resolve tx" hash={dispute.resolveTxHash} />
           </div>

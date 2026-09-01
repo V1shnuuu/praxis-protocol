@@ -179,7 +179,7 @@ function DemoModeBanner() {
         No orchestrator is configured, so agents, attestations and disputes are simulated in your
         browser. Trail hashes are real keccak256 digests and are verified client-side. Set
       </span>
-      <code className="rounded bg-paper-0 px-1.5 py-0.5 font-mono text-[10px] text-ink-600 ring-1 ring-inset ring-line-300">
+      <code className="rounded bg-white/[0.08] px-1.5 py-0.5 font-mono text-[10px] text-ink-600 ring-1 ring-inset ring-white/10">
         NEXT_PUBLIC_API_URL
       </code>
       <span className="text-ink-500">to run against the live FastAPI backend.</span>

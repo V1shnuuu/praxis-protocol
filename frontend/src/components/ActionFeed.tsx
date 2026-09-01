@@ -62,7 +62,7 @@ export function ActionFeed({
           hint="As agents make decisions, each one is hashed and committed on-chain. They will stream in here."
         />
       ) : (
-        <ul className="scroll-slim min-h-0 flex-1 divide-y divide-line-300/40 overflow-y-auto">
+        <ul className="scroll-slim min-h-0 flex-1 divide-y divide-line-200 overflow-y-auto">
           {attestations.map((attestation) => (
             <FeedRow
               key={attestation.attestationId}
@@ -100,8 +100,8 @@ function FeedRow({
       <button
         type="button"
         onClick={() => onSelect(attestation)}
-        className={`flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-paper-100/50 ${
-          violating ? "bg-state-slashed/[0.06]" : ""
+        className={`flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-white/[0.05] ${
+          violating ? "bg-state-slashed/[0.09]" : ""
         }`}
         aria-label={`Reveal decision trail for attestation ${attestation.attestationId}`}
       >
