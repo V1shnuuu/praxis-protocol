@@ -59,21 +59,25 @@ async def _await_dispute(http: httpx.AsyncClient, *, status: str | None = None) 
 async def _rogue_and_settle(http: httpx.AsyncClient, agent_id: int) -> dict:
     """Sends an agent rogue and waits for *its own* dispute to be resolved.
 
-    Waiting on ``disputes[0]`` alone is not enough once an agent has been slashed
-    before: the previous verdict is still at the head of the list and would be
-    read as this one's.
+    The dispute is identified by the attestation the rogue call returned, which
+    is the only thing that names it unambiguously. "A new dispute exists and the
+    newest one is resolved" is not the same claim: it is satisfied by the
+    previous verdict still sitting at the head of the list, and reading that one
+    returns before this slash has been applied.
     """
-    before = len((await http.get("/api/disputes")).json())
     response = await http.post(f"/api/agents/{agent_id}/rogue")
     assert response.status_code == 200, response.json()
+    attestation_id = response.json()["attestationId"]
 
     deadline = asyncio.get_running_loop().time() + TIMEOUT
     while asyncio.get_running_loop().time() < deadline:
-        disputes = (await http.get("/api/disputes")).json()
-        if len(disputes) > before and disputes[0]["status"] != "open":
-            return disputes[0]
+        for dispute in (await http.get("/api/disputes")).json():
+            if dispute["attestationId"] == attestation_id and dispute["status"] != "open":
+                return dispute
         await asyncio.sleep(0.02)
-    raise AssertionError(f"the new dispute did not resolve within {TIMEOUT}s")
+    raise AssertionError(
+        f"the dispute for attestation {attestation_id} did not resolve within {TIMEOUT}s"
+    )
 
 
 # ----------------------------------------------------------------------- status
@@ -299,6 +303,42 @@ async def test_an_agent_slashed_under_the_minimum_bond_is_out(client):
 
     # And it can no longer act.
     assert (await client.post(f"/api/agents/{lending['agentId']}/rogue")).status_code == 409
+
+
+async def test_the_dispute_feed_is_never_read_mid_shift(client):
+    """Regression: reading the list while a dispute opened used to duplicate one.
+
+    ``disputes()`` awaits per dispute, so it yields to the event loop part-way
+    through building the response, and the watcher inserts each new dispute at
+    index 0. Iterating the live list meant the read resumed at a position that
+    had shifted under it: the response came back with the previous dispute twice
+    and the newest one missing. The dashboard polls this endpoint every couple
+    of seconds, so it showed a duplicate row and no sign of the dispute that had
+    just been opened.
+    """
+    agents = (await client.get("/api/agents")).json()
+    lending = next(a for a in agents if a["name"] == "LendingAgent")
+
+    done = asyncio.Event()
+
+    async def keep_reading() -> None:
+        # The explicit yield matters: nothing in an in-memory ASGI request
+        # actually suspends, so a bare loop here never hands the event loop back
+        # and the orchestrator never gets to run at all.
+        deadline = asyncio.get_running_loop().time() + TIMEOUT
+        while not done.is_set() and asyncio.get_running_loop().time() < deadline:
+            ids = [d["disputeId"] for d in (await client.get("/api/disputes")).json()]
+            assert len(ids) == len(set(ids)), f"a dispute came back twice: {ids}"
+            assert ids == sorted(ids, reverse=True), f"the feed was out of order: {ids}"
+            await asyncio.sleep(0)
+
+    reader = asyncio.create_task(keep_reading())
+    try:
+        for _ in range(5):
+            await _rogue_and_settle(client, lending["agentId"])
+    finally:
+        done.set()
+    await reader  # surfaces whatever the reader caught
 
 
 async def test_the_rogue_attestation_is_permanently_marked(client):
