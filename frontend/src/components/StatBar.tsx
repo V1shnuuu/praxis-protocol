@@ -1,8 +1,10 @@
 "use client";
 
+import { useRef } from "react";
 import type { Agent, Attestation, Dispute } from "@/lib/types";
 import { Skeleton } from "@/components/ui/primitives";
 import { formatPrax } from "@/lib/format";
+import { useTilt } from "@/lib/parallax";
 
 /**
  * Protocol-level headline numbers. These are stat tiles, not charts — the
@@ -66,14 +68,31 @@ export function StatBar({
   return (
     <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
       {tiles.map((tile) => (
-        <div key={tile.label} className="panel px-4 py-3">
-          <p className="text-[10px] uppercase tracking-wider text-ink-500">{tile.label}</p>
-          <p className={`mt-1 text-xl font-semibold tabular-nums ${tile.tone ?? "text-ink-900"}`}>
-            {tile.value}
-          </p>
-          {tile.sub && <p className="mt-0.5 text-[11px] text-ink-500">{tile.sub}</p>}
-        </div>
+        <Tile key={tile.label} {...tile} />
       ))}
+    </div>
+  );
+}
+
+function Tile({
+  label,
+  value,
+  sub,
+  tone,
+}: {
+  label: string;
+  value: string;
+  sub?: string;
+  tone?: string;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  useTilt(ref, { max: 4, lift: -3 });
+
+  return (
+    <div ref={ref} className="tilt panel panel-interactive px-4 py-3">
+      <p className="text-[10px] uppercase tracking-wider text-ink-500">{label}</p>
+      <p className={`mt-1 text-xl font-semibold tabular-nums ${tone ?? "text-ink-900"}`}>{value}</p>
+      {sub && <p className="mt-0.5 text-[11px] text-ink-500">{sub}</p>}
     </div>
   );
 }

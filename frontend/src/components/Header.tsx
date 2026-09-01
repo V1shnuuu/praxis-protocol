@@ -1,14 +1,18 @@
 "use client";
 
+import { useRef } from "react";
 import type { SystemStatus } from "@/lib/types";
 import { Badge, Dot } from "@/components/ui/primitives";
 import { WalletConnect } from "@/components/WalletConnect";
+import { useScrollProgress } from "@/lib/parallax";
 
 export function Header({ status }: { status: SystemStatus | null }) {
   const demo = status?.mode === "demo";
+  const rail = useRef<HTMLDivElement>(null);
+  useScrollProgress(rail);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line-300 bg-paper-50/75 backdrop-blur-xl">
+    <header className="sticky top-0 z-40 border-b border-line-200 bg-void-900/55 backdrop-blur-glass">
       <div className="mx-auto flex max-w-[1600px] flex-wrap items-center gap-x-4 gap-y-3 px-4 py-3 sm:px-6">
         <div className="flex min-w-0 items-center gap-3">
           <Logo />
@@ -46,6 +50,15 @@ export function Header({ status }: { status: SystemStatus | null }) {
           <WalletConnect status={status} />
         </div>
       </div>
+
+      {/* Reading progress. scaleX from a left origin, so scrolling never
+          re-lays-out the header. */}
+      <div
+        ref={rail}
+        className="absolute inset-x-0 bottom-0 h-px origin-left bg-gradient-to-r from-accent-500 via-iris-500 to-state-clean"
+        style={{ transform: "scaleX(0)" }}
+        aria-hidden
+      />
     </header>
   );
 }
@@ -53,7 +66,7 @@ export function Header({ status }: { status: SystemStatus | null }) {
 function Logo() {
   return (
     <span
-      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-ink-900 text-white"
+      className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/[0.08] text-accent-400 ring-1 ring-inset ring-white/15 backdrop-blur-sm"
       aria-hidden
     >
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none">

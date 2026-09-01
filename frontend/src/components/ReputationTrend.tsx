@@ -10,9 +10,9 @@ import { REPUTATION } from "@/lib/reputation";
  */
 
 const TONE = {
-  up: { stroke: "#067A54", fill: "rgba(6,122,84,0.12)" },
-  down: { stroke: "#C2264B", fill: "rgba(194,38,75,0.12)" },
-  flat: { stroke: "#767C86", fill: "rgba(118,124,134,0.10)" },
+  up: { stroke: "#3EE0A1", fill: "rgba(62,224,161,0.22)" },
+  down: { stroke: "#FF6B8A", fill: "rgba(255,107,138,0.22)" },
+  flat: { stroke: "#8891AE", fill: "rgba(136,145,174,0.18)" },
 } as const;
 
 export type TrendDirection = keyof typeof TONE;
@@ -50,7 +50,7 @@ export function Sparkline({
           y1={height / 2}
           x2={width - 2}
           y2={height / 2}
-          stroke="#D5D5CD"
+          stroke="rgba(255,255,255,0.20)"
           strokeWidth={2}
           strokeLinecap="round"
           strokeDasharray="3 4"
@@ -97,7 +97,7 @@ export function Sparkline({
       <path d={area} fill={`url(#${gradientId})`} />
       <path d={line} fill="none" stroke={tone.stroke} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
       {/* Only the current value gets a marker — never a dot on every point. */}
-      <circle cx={lastX} cy={lastY} r={3} fill={tone.stroke} stroke="#FFFFFF" strokeWidth={2} />
+      <circle cx={lastX} cy={lastY} r={3} fill={tone.stroke} stroke="#05060D" strokeWidth={2} />
     </svg>
   );
 }

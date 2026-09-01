@@ -4,7 +4,7 @@
 
 @layer base {
   html {
-    color-scheme: light;
+    color-scheme: dark;
     scroll-behavior: smooth;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
@@ -16,16 +16,18 @@
   }
 
   body {
-    @apply bg-paper-50 text-ink-900;
-    /* Depth is painted by <ParallaxBackground />, which sits behind everything. */
+    @apply bg-void-900 text-ink-900;
+    /* Depth is painted by <ParallaxBackground />, which sits behind everything.
+       The ground is set here too so the page never flashes white before it
+       mounts, and so overscroll on iOS reveals the right colour. */
   }
 
   :focus-visible {
-    @apply outline-none ring-2 ring-accent-500/60 ring-offset-2 ring-offset-paper-50;
+    @apply outline-none ring-2 ring-accent-500/70 ring-offset-2 ring-offset-void-900;
   }
 
   ::selection {
-    @apply bg-accent-100 text-ink-900;
+    @apply bg-accent-500/30 text-ink-900;
   }
 
   /* Numerals line up in tables, bonds and reputation scores. */
@@ -35,47 +37,139 @@
 }
 
 @layer components {
-  /* A card is a white plane on warm paper: one hairline, a whisper of shadow. */
+  /*
+   * The glass plane.
+   *
+   * Three things together make this read as glass rather than as a grey box:
+   * the backdrop blur (which needs a *varied* backdrop to be visible at all —
+   * see ParallaxBackground), the near-invisible white fill that tints what
+   * shows through, and the bright inset line along the top edge that reads as
+   * a lit bevel. Drop any one and it looks like flat translucency.
+   *
+   * `isolation: isolate` keeps the ::before highlight from blending with
+   * whatever sits behind the card.
+   */
   .panel {
-    @apply rounded-2xl border border-line-300 bg-paper-0 shadow-card;
+    @apply relative rounded-2xl border border-line-300 bg-white/[0.055] shadow-glass backdrop-blur-glass;
+    isolation: isolate;
   }
 
-  /* Nested surfaces step down to paper rather than up into another shadow. */
+  /* The specular edge: a hairline of light along the top, fading out by the
+     shoulders, the way a real pane catches a light source above it. */
+  .panel::before {
+    content: "";
+    @apply pointer-events-none absolute inset-x-0 top-0 h-px rounded-t-2xl;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.22) 22%,
+      rgba(255, 255, 255, 0.3) 50%,
+      rgba(255, 255, 255, 0.22) 78%,
+      transparent
+    );
+  }
+
+  /* Nested glass sits one step brighter, not one shadow deeper — stacking
+     shadows inside a translucent plane muddies it immediately. */
   .panel-raised {
-    @apply rounded-xl border border-line-300 bg-paper-0;
+    @apply relative rounded-xl border border-line-300 bg-white/[0.055] backdrop-blur-sm;
+    isolation: isolate;
+  }
+
+  .panel-raised::before {
+    content: "";
+    @apply pointer-events-none absolute inset-x-0 top-0 h-px rounded-t-xl;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.16) 30%,
+      rgba(255, 255, 255, 0.16) 70%,
+      transparent
+    );
+  }
+
+  /* Interactive glass: lifts and brightens on hover. Transform is kept off the
+     hover so it composites cleanly alongside the pointer tilt. */
+  .panel-interactive {
+    @apply transition-[background-color,border-color,box-shadow] duration-300;
+  }
+  .panel-interactive:hover {
+    @apply border-line-400 bg-white/[0.075] shadow-glass-lift;
+  }
+
+  /* A single diagonal light sweep across a pane, used on the primary CTA.
+     Purely decorative, so it is applied to a ::after that ignores pointers. */
+  .sheen {
+    @apply relative overflow-hidden;
+  }
+  .sheen::after {
+    content: "";
+    @apply pointer-events-none absolute inset-0 -translate-x-full;
+    background: linear-gradient(
+      100deg,
+      transparent 20%,
+      rgba(255, 255, 255, 0.18) 50%,
+      transparent 80%
+    );
+    transition: transform 900ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .sheen:hover::after {
+    @apply translate-x-full;
+  }
+
+  /* Pointer-driven tilt, written by useTilt as CSS variables so the rAF loop
+     never touches React state. Defaults are flat, so an element renders
+     correctly before the first frame and under reduced motion. */
+  .tilt {
+    --tilt-x: 0deg;
+    --tilt-y: 0deg;
+    --tilt-lift: 0px;
+    transform: perspective(900px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y))
+      translate3d(0, var(--tilt-lift), 0);
+    transform-style: preserve-3d;
+    transition: transform 400ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  /* While the pointer is inside, follow it immediately; the long transition
+     above then only governs the settle on leave. */
+  .tilt[data-tilting="true"] {
+    transition: transform 90ms linear;
   }
 
   .scroll-slim {
     scrollbar-width: thin;
-    scrollbar-color: theme("colors.line.400") transparent;
+    scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
   }
   .scroll-slim::-webkit-scrollbar {
     width: 8px;
   }
   .scroll-slim::-webkit-scrollbar-thumb {
-    @apply rounded-full bg-line-400;
+    @apply rounded-full;
+    background: rgba(255, 255, 255, 0.18);
+  }
+  .scroll-slim::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.28);
   }
   .scroll-slim::-webkit-scrollbar-track {
     background: transparent;
   }
 
   .skeleton {
-    @apply relative overflow-hidden rounded-md bg-paper-100;
+    @apply relative overflow-hidden rounded-md bg-white/[0.06];
   }
   .skeleton::after {
     @apply absolute inset-0 -translate-x-full;
     content: "";
-    background-image: linear-gradient(90deg, transparent, rgba(20, 22, 26, 0.045), transparent);
+    background-image: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.09), transparent);
     animation: shimmer 1.6s infinite;
   }
 
   /* Scroll-reveal: hidden until useReveal stamps data-revealed. */
   .reveal {
     opacity: 0;
-    transform: translate3d(0, 18px, 0);
+    transform: translate3d(0, 22px, 0);
     transition:
-      opacity 700ms cubic-bezier(0.16, 1, 0.3, 1),
-      transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
+      opacity 760ms cubic-bezier(0.16, 1, 0.3, 1),
+      transform 760ms cubic-bezier(0.16, 1, 0.3, 1);
     will-change: opacity, transform;
   }
   .reveal[data-revealed="true"] {
@@ -87,6 +181,23 @@
   /* Fine uppercase label used for every field caption. */
   .label {
     @apply text-[10px] font-medium uppercase tracking-[0.08em] text-ink-500;
+  }
+
+  /* Gradient text for the one headline that earns it. `text-fill-color` is the
+     -webkit path every current engine still needs for background-clip: text. */
+  .text-gradient {
+    background-image: linear-gradient(
+      104deg,
+      theme("colors.ink.900") 4%,
+      theme("colors.accent.400") 38%,
+      theme("colors.iris.400") 62%,
+      theme("colors.ink.900") 96%
+    );
+    background-size: 220% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
   }
 }
 
@@ -106,5 +217,23 @@
   .reveal {
     opacity: 1 !important;
     transform: none !important;
+  }
+
+  .tilt {
+    transform: none !important;
+  }
+}
+
+/*
+ * Fallback for engines without backdrop-filter (Firefox with the pref off, and
+ * some embedded webviews). Without this the panels are 5.5% white on near-black
+ * and effectively invisible, so they fall back to an opaque fill instead.
+ */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .panel {
+    @apply bg-paper-100/95;
+  }
+  .panel-raised {
+    @apply bg-paper-200/90;
   }
 }

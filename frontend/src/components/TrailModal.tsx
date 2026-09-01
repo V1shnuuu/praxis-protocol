@@ -72,7 +72,7 @@ function TrailModalContent({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-ink-900/20 p-0 backdrop-blur-sm sm:items-center sm:p-6"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-void-900/70 p-0 backdrop-blur-md sm:items-center sm:p-6"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
@@ -82,7 +82,7 @@ function TrailModalContent({
         onClick={stop}
         className="panel max-h-[92vh] w-full max-w-2xl animate-fade-in-up overflow-hidden rounded-b-none sm:rounded-xl"
       >
-        <header className="flex items-start justify-between gap-4 border-b border-line-300/60 px-5 py-4">
+        <header className="flex items-start justify-between gap-4 border-b border-line-200 px-5 py-4">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <h2 className="text-sm font-semibold text-ink-900">
@@ -117,8 +117,8 @@ function TrailModalContent({
                 <div
                   className={`rounded-lg border px-4 py-3 ${
                     verification.matches
-                      ? "border-state-clean/30 bg-state-clean/8"
-                      : "border-state-slashed/40 bg-state-slashed/8"
+                      ? "border-state-clean/30 bg-state-clean/[0.10]"
+                      : "border-state-slashed/40 bg-state-slashed/[0.10]"
                   }`}
                 >
                   <p
@@ -185,7 +185,7 @@ function TrailModalContent({
                   {showRaw ? "Hide" : "Show"} canonical JSON (the exact bytes that were hashed)
                 </button>
                 {showRaw && (
-                  <pre className="scroll-slim mt-2 max-h-56 overflow-auto whitespace-pre-wrap break-all rounded-lg border border-line-300/60 bg-paper-100 p-3 font-mono text-[10px] leading-relaxed text-ink-600">
+                  <pre className="scroll-slim mt-2 max-h-56 overflow-auto whitespace-pre-wrap break-all rounded-lg border border-line-200 bg-black/25 p-3 font-mono text-[10px] leading-relaxed text-ink-600">
                     {canonicalTrailJson({
                       attestationId: trail.attestationId,
                       agentId: trail.agentId,
@@ -202,7 +202,7 @@ function TrailModalContent({
           ) : null}
         </div>
 
-        <footer className="flex items-center justify-between gap-3 border-t border-line-300/60 px-5 py-3">
+        <footer className="flex items-center justify-between gap-3 border-t border-line-200 px-5 py-3">
           <Mono className="truncate text-ink-500" title={attestation.trailHash}>
             {shortHash(attestation.trailHash)}
           </Mono>
@@ -248,7 +248,7 @@ function KeyValues({ data }: { data: Record<string, unknown> }) {
   const entries = Object.entries(data);
   if (entries.length === 0) return <p className="text-xs text-ink-400">—</p>;
   return (
-    <dl className="space-y-1 rounded-lg border border-line-300/50 bg-paper-100 px-3 py-2">
+    <dl className="space-y-1 rounded-lg border border-line-200 bg-white/[0.04] px-3 py-2">
       {entries.map(([key, value]) => (
         <div key={key} className="flex items-baseline justify-between gap-3">
           <dt className="text-[11px] text-ink-500">{key}</dt>

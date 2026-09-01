@@ -17,9 +17,9 @@ export default function OpengraphImage() {
           justifyContent: "center",
           padding: "72px",
           background:
-            "radial-gradient(900px 600px at 12% -10%, rgba(47,107,255,0.14) 0%, transparent 62%)," +
-            "radial-gradient(700px 500px at 100% 10%, rgba(167,139,250,0.13) 0%, transparent 60%), #FBFBF9",
-          color: "#14161A",
+            "radial-gradient(900px 600px at 12% -10%, rgba(124,158,255,0.30) 0%, transparent 62%)," +
+            "radial-gradient(700px 500px at 100% 10%, rgba(168,123,255,0.26) 0%, transparent 60%), #05060D",
+          color: "#F4F6FF",
           fontFamily: "sans-serif",
         }}
       >
@@ -29,7 +29,7 @@ export default function OpengraphImage() {
             alignItems: "center",
             gap: "14px",
             fontSize: 22,
-            color: "#1D4FD8",
+            color: "#B7C8FF",
             letterSpacing: "0.02em",
           }}
         >
@@ -38,7 +38,7 @@ export default function OpengraphImage() {
               width: 14,
               height: 14,
               borderRadius: 999,
-              background: "#2F6BFF",
+              background: "#7C9EFF",
               display: "flex",
             }}
           />
@@ -62,7 +62,7 @@ export default function OpengraphImage() {
           style={{
             display: "flex",
             fontSize: 28,
-            color: "#545A63",
+            color: "#A8B0CC",
             marginTop: 28,
             maxWidth: 900,
             lineHeight: 1.35,
@@ -78,13 +78,13 @@ export default function OpengraphImage() {
             gap: "16px",
             marginTop: 44,
             fontSize: 22,
-            color: "#767C86",
+            color: "#8891AE",
           }}
         >
           <div style={{ display: "flex" }}>Declare</div>
-          <div style={{ display: "flex", color: "#D5D5CD" }}>/</div>
+          <div style={{ display: "flex", color: "#666E8C" }}>/</div>
           <div style={{ display: "flex" }}>Commit</div>
-          <div style={{ display: "flex", color: "#D5D5CD" }}>/</div>
+          <div style={{ display: "flex", color: "#666E8C" }}>/</div>
           <div style={{ display: "flex" }}>Slash</div>
         </div>
       </div>
