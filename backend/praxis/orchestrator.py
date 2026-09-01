@@ -215,7 +215,7 @@ class Orchestrator:
                 format_prax(agent.bond_wei),
             )
 
-        for runtime in self._runtimes.values():
+        for runtime in list(self._runtimes.values()):
             await self._record_score(runtime)
 
     async def _existing_by_name(self) -> dict[str, int]:
@@ -238,7 +238,7 @@ class Orchestrator:
 
     async def _tick(self) -> None:
         """One compliant-intent decision from the next agent in rotation."""
-        active = [r for r in self._runtimes.values() if await self._is_active(r)]
+        active = [r for r in list(self._runtimes.values()) if await self._is_active(r)]
         if not active:
             return
         runtime = active[self._cycle % len(active)]
@@ -479,7 +479,9 @@ class Orchestrator:
 
     async def agents(self) -> list[Agent]:
         out: list[Agent] = []
-        for runtime in self._runtimes.values():
+        # Snapshotted for the same reason as `disputes()`: this awaits per agent,
+        # and `reset()` clears the dict.
+        for runtime in list(self._runtimes.values()):
             state = await self._call(self._ledger.agent, runtime.ledger_id)
             score = await self._call(self._ledger.reputation, runtime.ledger_id)
 
@@ -549,7 +551,11 @@ class Orchestrator:
         return self._store.get(attestation_id)
 
     async def disputes(self) -> list[Dispute]:
-        return [await self.dispute(dispute_id) for dispute_id in self._dispute_order]
+        # Snapshot the order first. `dispute()` awaits, so it yields to the event
+        # loop mid-iteration, and the watcher inserts each new dispute at index
+        # 0 — iterating the live list re-reads a shifted position and returns the
+        # previous dispute twice while dropping the newest one entirely.
+        return [await self.dispute(dispute_id) for dispute_id in list(self._dispute_order)]
 
     async def dispute(self, dispute_id: int) -> Dispute:
         record = self._disputes.get(dispute_id)
